@@ -1,0 +1,8 @@
+# OpenTofu/Terraform state files
+.terraform/
+.terraform.lock.hcl
+terraform.tfstate
+terraform.tfstate.backup
+
+# Sensitive values - NEVER commit this!
+terraform.tfvars

@@ -1,0 +1,616 @@
+[
+    {
+        "id": "420bfaf33c99cb1f",
+        "type": "tab",
+        "label": "Flow 1",
+        "disabled": false,
+        "info": "",
+        "env": []
+    },
+    {
+        "id": "2e9e09f5ef172d8d",
+        "type": "tab",
+        "label": "Valve Controller",
+        "disabled": false,
+        "info": "",
+        "env": []
+    },
+    {
+        "id": "cb1b3f903bd1d9f6",
+        "type": "tab",
+        "label": "MinIO Upload",
+        "disabled": false,
+        "info": "",
+        "env": []
+    },
+    {
+        "id": "bf5436d223d306e8",
+        "type": "amqp-broker",
+        "name": "",
+        "host": "${RABBIT_HOST}",
+        "port": "${RABBIT_PORT}",
+        "vhost": "",
+        "tls": false,
+        "credsFromSettings": false
+    },
+    {
+        "id": "4c93f83cb97d0f2c",
+        "type": "mqtt-broker",
+        "name": "ThingsBoard MQTT",
+        "broker": "thingsboard",
+        "port": 1883,
+        "clientid": "nodered-farm-client",
+        "autoConnect": true,
+        "usetls": false,
+        "protocolVersion": 4,
+        "keepalive": 60,
+        "cleansession": true,
+        "autoUnsubscribe": true,
+        "birthTopic": "",
+        "birthQos": "0",
+        "birthRetain": "false",
+        "birthPayload": "",
+        "birthMsg": {},
+        "closeTopic": "",
+        "closeQos": "0",
+        "closeRetain": "false",
+        "closePayload": "",
+        "closeMsg": {},
+        "willTopic": "",
+        "willQos": "0",
+        "willRetain": "false",
+        "willPayload": "",
+        "willMsg": {},
+        "userProps": "",
+        "sessionExpiry": "",
+        "credentials": {
+            "user": "5aGCIzt29HsGQbiE6zaz",
+            "password": ""
+        }
+    },
+    {
+        "id": "1bb9e416ea8548f2",
+        "type": "aws-config-s3"
+    },
+    {
+        "id": "798e268413058db2",
+        "type": "debug",
+        "z": "420bfaf33c99cb1f",
+        "name": "debug 1",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "payload",
+        "targetType": "msg",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 880,
+        "y": 240,
+        "wires": []
+    },
+    {
+        "id": "1f1d340eeed8f73c",
+        "type": "mqtt out",
+        "z": "420bfaf33c99cb1f",
+        "name": "",
+        "topic": "v1/devices/me/telemetry",
+        "qos": "",
+        "retain": "",
+        "respTopic": "",
+        "contentType": "",
+        "userProps": "",
+        "correl": "",
+        "expiry": "",
+        "broker": "4c93f83cb97d0f2c",
+        "x": 930,
+        "y": 120,
+        "wires": []
+    },
+    {
+        "id": "1bd15af620456885",
+        "type": "inject",
+        "z": "420bfaf33c99cb1f",
+        "name": "",
+        "props": [
+            {
+                "p": "payload"
+            },
+            {
+                "p": "topic",
+                "vt": "str"
+            }
+        ],
+        "repeat": "30",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "{\"soil_moisture\": 45}",
+        "payloadType": "json",
+        "x": 320,
+        "y": 120,
+        "wires": [
+            [
+                "c52186ebd588e3df"
+            ]
+        ]
+    },
+    {
+        "id": "c52186ebd588e3df",
+        "type": "function",
+        "z": "420bfaf33c99cb1f",
+        "name": "function 1",
+        "func": "// Τυχαία τιμή υγρασίας (20-80%)\nconst moisture = Math.round(Math.random() * 60 + 20);\n\n// Τυχαία τιμή βροχής (true/false) - 30% πιθανότητα βροχής\nconst rain = Math.random() < 0.3;\n\n// Δημιουργία του μηνύματος για το ThingsBoard\nmsg.payload = {\n    soil_moisture: moisture,\n    rain_forecast: rain,\n    latitude: 37.9838,\n    longitude: 23.7275,\n    timestamp: Date.now()\n};\n\n// Εμφάνιση στο debug\nnode.warn(\"🌱 Υγρασία: \" + moisture + \"% | Βροχή: \" + (rain ? \"☔ ΝΑΙ\" : \"☀️ ΟΧΙ\"));\n\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 560,
+        "y": 120,
+        "wires": [
+            [
+                "1f1d340eeed8f73c",
+                "798e268413058db2"
+            ]
+        ]
+    },
+    {
+        "id": "2570ef42131dfcf7",
+        "type": "inject",
+        "z": "420bfaf33c99cb1f",
+        "name": "",
+        "props": [
+            {
+                "p": "payload"
+            },
+            {
+                "p": "topic",
+                "vt": "str"
+            }
+        ],
+        "repeat": "300",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "",
+        "payloadType": "date",
+        "x": 250,
+        "y": 340,
+        "wires": [
+            [
+                "1c7f9f84644259f2"
+            ]
+        ]
+    },
+    {
+        "id": "d99d7599033fe271",
+        "type": "function",
+        "z": "420bfaf33c99cb1f",
+        "name": "function 2",
+        "func": "// Έλεγχος αν το HTTP Request πέτυχε\nif (msg.payload && msg.payload.current_weather) {\n    // Το payload από το HTTP Request\n    const weather = msg.payload.current_weather;\n\n    // Εξαγωγή δεδομένων\n    const temperature = weather.temperature;\n    const windspeed = weather.windspeed;\n    const weathercode = weather.weathercode;\n\n    // Έλεγχος αν έχει βροχή (weathercode 51-67 = βροχή)\n    const rain = (weathercode >= 51 && weathercode <= 67) || weathercode === 80 || weathercode === 81 || weathercode === 82;\n\n    // Δημιουργία μηνύματος\n    msg.payload = {\n        temperature: temperature,\n        windspeed: windspeed,\n        rain_forecast: rain,\n        weathercode: weathercode,\n        timestamp: Date.now()\n    };\n\n    node.warn(`🌤️ Θερμοκρασία: ${temperature}°C | Άνεμος: ${windspeed} km/h | Βροχή: ${rain ? '☔ ΝΑΙ' : '☀️ ΟΧΙ'}`);\n} else {\n    // Αν απέτυχε το HTTP Request, χρησιμοποίησε mock δεδομένα\n    const mockTemp = Math.round(Math.random() * 20 + 15);\n    const mockRain = Math.random() < 0.3;\n    const mockWindspeed = Math.round(Math.random() * 20 + 5);\n    const mockWeathercode = mockRain ? 61 : 0;   // ← ΝΕΟ!\n\n    node.warn(`⚠️ Mock καιρός: ${mockTemp}°C | Άνεμος: ${mockWindspeed} km/h | Βροχή: ${mockRain ? '☔ ΝΑΙ' : '☀️ ΟΧΙ'}`);\n\n    msg.payload = {\n        temperature: mockTemp,\n        windspeed: mockWindspeed,\n        rain_forecast: mockRain,\n        weathercode: mockWeathercode,   // ← ΧΡΗΣΙΜΟΠΟΙΕΙ ΤΗ ΜΕΤΑΒΛΗΤΗ\n        timestamp: Date.now()\n    };\n}\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 640,
+        "y": 340,
+        "wires": [
+            [
+                "5440fb8981bd3a2e",
+                "568fbff66cb25744"
+            ]
+        ]
+    },
+    {
+        "id": "5440fb8981bd3a2e",
+        "type": "mqtt out",
+        "z": "420bfaf33c99cb1f",
+        "name": "",
+        "topic": "v1/devices/me/telemetry",
+        "qos": "0",
+        "retain": "",
+        "respTopic": "",
+        "contentType": "",
+        "userProps": "",
+        "correl": "",
+        "expiry": "",
+        "broker": "4c93f83cb97d0f2c",
+        "x": 910,
+        "y": 340,
+        "wires": []
+    },
+    {
+        "id": "568fbff66cb25744",
+        "type": "debug",
+        "z": "420bfaf33c99cb1f",
+        "name": "debug 2",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "false",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 860,
+        "y": 480,
+        "wires": []
+    },
+    {
+        "id": "1c7f9f84644259f2",
+        "type": "http request",
+        "z": "420bfaf33c99cb1f",
+        "name": "",
+        "method": "GET",
+        "ret": "obj",
+        "paytoqs": "ignore",
+        "url": "http://api.open-meteo.com/v1/forecast?latitude=37.98&longitude=23.73&current_weather=true",
+        "tls": "",
+        "persist": false,
+        "proxy": "",
+        "insecureHTTPParser": false,
+        "authType": "",
+        "senderr": false,
+        "headers": [],
+        "x": 470,
+        "y": 340,
+        "wires": [
+            [
+                "d99d7599033fe271"
+            ]
+        ]
+    },
+    {
+        "id": "51087dbef958d6ea",
+        "type": "inject",
+        "z": "420bfaf33c99cb1f",
+        "name": "",
+        "props": [
+            {
+                "p": "payload"
+            },
+            {
+                "p": "topic",
+                "vt": "str"
+            }
+        ],
+        "repeat": "60",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "",
+        "payloadType": "date",
+        "x": 350,
+        "y": 620,
+        "wires": [
+            [
+                "76f949c60d889ab3"
+            ]
+        ]
+    },
+    {
+        "id": "76f949c60d889ab3",
+        "type": "function",
+        "z": "420bfaf33c99cb1f",
+        "name": "function 3",
+        "func": "// Χρησιμοποίησε global context για να θυμάται την προηγούμενη τιμή\nlet tankLevel = context.get('tankLevel') || 100;\n\n// Η στάθμη μειώνεται κατά 1-5% κάθε φορά (προσομοίωση κατανάλωσης)\nconst decrease = Math.round(Math.random() * 5) + 1;\ntankLevel = Math.max(0, tankLevel - decrease);\n\n// Αν η στάθμη πέσει κάτω από 10%, γέμισε τη δεξαμενή\nif (tankLevel < 10) {\n    tankLevel = 100;\n    node.warn(\"🔄 Η δεξαμενή γέμισε ξανά!\");\n}\n\n// Αποθήκευση της νέας τιμής\ncontext.set('tankLevel', tankLevel);\n\n// Δημιουργία μηνύματος\nmsg.payload = {\n    tank_level: Math.round(tankLevel),\n    timestamp: Date.now()\n};\n\nnode.warn(`💧 Στάθμη δεξαμενής: ${Math.round(tankLevel)}%`);\n\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 560,
+        "y": 620,
+        "wires": [
+            [
+                "d07e96d14d723394",
+                "ee939f4a69e549c9",
+                "tank2rabbitmq001"
+            ]
+        ]
+    },
+    {
+        "id": "d07e96d14d723394",
+        "type": "mqtt out",
+        "z": "420bfaf33c99cb1f",
+        "name": "",
+        "topic": "v1/devices/me/telemetry",
+        "qos": "0",
+        "retain": "",
+        "respTopic": "",
+        "contentType": "",
+        "userProps": "",
+        "correl": "",
+        "expiry": "",
+        "broker": "4c93f83cb97d0f2c",
+        "x": 890,
+        "y": 620,
+        "wires": []
+    },
+    {
+        "id": "tank2rabbitmq001",
+        "type": "amqp-out",
+        "z": "420bfaf33c99cb1f",
+        "name": "Tank → RabbitMQ",
+        "broker": "bf5436d223d306e8",
+        "exchangeName": "amq.topic",
+        "exchangeType": "topic",
+        "exchangeRoutingKey": "farm.tank",
+        "exchangeRoutingKeyType": "str",
+        "exchangeDurable": true,
+        "amqpProperties": "{ \"headers\": {} }",
+        "rpcTimeoutMilliseconds": 3000,
+        "outputs": 0,
+        "x": 890,
+        "y": 680,
+        "wires": []
+    },
+    {
+        "id": "ee939f4a69e549c9",
+        "type": "debug",
+        "z": "420bfaf33c99cb1f",
+        "name": "debug 3",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "payload",
+        "targetType": "msg",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 840,
+        "y": 720,
+        "wires": []
+    },
+    {
+        "id": "tb-rpc-in-001",
+        "type": "mqtt in",
+        "z": "2e9e09f5ef172d8d",
+        "name": "ThingsBoard RPC Commands",
+        "topic": "v1/devices/me/rpc/request/+",
+        "qos": "0",
+        "datatype": "json",
+        "broker": "4c93f83cb97d0f2c",
+        "nl": false,
+        "rap": true,
+        "rh": 0,
+        "inputs": 0,
+        "x": 200,
+        "y": 360,
+        "wires": [
+            [
+                "tb-rpc-parse-001"
+            ]
+        ]
+    },
+    {
+        "id": "tb-rpc-parse-001",
+        "type": "function",
+        "z": "2e9e09f5ef172d8d",
+        "name": "Parse RPC → Valve Command",
+        "func": "// Το ThingsBoard στέλνει: {\"method\": \"openValve\", \"params\": {\"valve\": 1}}\nconst rpc = msg.payload;\n\nif (!rpc || !rpc.method) {\n    node.warn(\"⚠️ Άγνωστο RPC μήνυμα: \" + JSON.stringify(rpc));\n    return null;\n}\n\nif (rpc.method === \"openValve\") {\n    msg.payload = { action: \"open\", valve: (rpc.params && rpc.params.valve) || 1 };\n    node.status({fill:\"green\", shape:\"dot\", text:\"RPC: openValve \" + msg.payload.valve});\n} else if (rpc.method === \"closeValve\") {\n    msg.payload = { action: \"close\", valve: (rpc.params && rpc.params.valve) || 1 };\n    node.status({fill:\"red\", shape:\"dot\", text:\"RPC: closeValve \" + msg.payload.valve});\n} else {\n    node.warn(\"⚠️ Άγνωστη μέθοδος RPC: \" + rpc.method);\n    return null;\n}\n\nnode.warn(\"🚿 Εντολή βάνας: \" + JSON.stringify(msg.payload));\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 480,
+        "y": 360,
+        "wires": [
+            [
+                "tb-rpc-amqp-001",
+                "tb-rpc-debug-001"
+            ]
+        ]
+    },
+    {
+        "id": "tb-rpc-amqp-001",
+        "type": "amqp-out",
+        "z": "2e9e09f5ef172d8d",
+        "name": "Valve → RabbitMQ",
+        "broker": "bf5436d223d306e8",
+        "exchangeName": "amq.topic",
+        "exchangeType": "topic",
+        "exchangeRoutingKey": "farm.valve.1",
+        "exchangeRoutingKeyType": "str",
+        "exchangeDurable": true,
+        "amqpProperties": "{ \"headers\": {} }",
+        "rpcTimeoutMilliseconds": 3000,
+        "outputs": 0,
+        "x": 760,
+        "y": 340,
+        "wires": []
+    },
+    {
+        "id": "tb-rpc-debug-001",
+        "type": "debug",
+        "z": "2e9e09f5ef172d8d",
+        "name": "debug RPC",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "payload",
+        "targetType": "msg",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 760,
+        "y": 400,
+        "wires": []
+    },
+    {
+        "id": "f2746bd988aa2db8",
+        "type": "amqp-in",
+        "z": "2e9e09f5ef172d8d",
+        "name": "",
+        "broker": "bf5436d223d306e8",
+        "prefetch": 0,
+        "noAck": true,
+        "exchangeName": "amq.topic",
+        "exchangeType": "topic",
+        "exchangeRoutingKey": "farm.valve.*",
+        "exchangeDurable": true,
+        "queueName": "valve.commands",
+        "queueExclusive": false,
+        "queueDurable": false,
+        "queueAutoDelete": false,
+        "headers": "{}",
+        "x": 380,
+        "y": 180,
+        "wires": [
+            [
+                "9a604413480ec6c4"
+            ]
+        ]
+    },
+    {
+        "id": "9a604413480ec6c4",
+        "type": "function",
+        "z": "2e9e09f5ef172d8d",
+        "name": "function 4",
+        "func": "// Πρώτα σιγουρευόμαστε ότι το msg.payload είναι object\nif (typeof msg.payload === 'string') {\n    try {\n        msg.payload = JSON.parse(msg.payload);\n    } catch (e) {\n        node.error(\"Το μήνυμα δεν είναι έγκυρο JSON\");\n        return null; // Σταματάμε τη ροή αν δεν είναι JSON\n    }\n}\n\nconst command = msg.payload;\n\nif (command && command.action) {\n    if (command.action === \"open\") {\n        node.status({fill:\"green\", shape:\"dot\", text:\"Valve OPEN\"});\n    } else if (command.action === \"close\") {\n        node.status({fill:\"red\", shape:\"dot\", text:\"Valve CLOSED\"});\n    } else {\n        node.status({fill:\"yellow\", shape:\"ring\", text:\"Unknown command: \" + command.action});\n    }\n} else {\n    node.status({fill:\"grey\", shape:\"ring\", text:\"No action found\"});\n}\n\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 660,
+        "y": 180,
+        "wires": [
+            [
+                "a2273c07420988db"
+            ]
+        ]
+    },
+    {
+        "id": "a2273c07420988db",
+        "type": "debug",
+        "z": "2e9e09f5ef172d8d",
+        "name": "debug 4",
+        "active": false,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "payload",
+        "targetType": "msg",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 900,
+        "y": 180,
+        "wires": []
+    },
+    {
+        "id": "6b8af8208454a742",
+        "type": "inject",
+        "z": "cb1b3f903bd1d9f6",
+        "name": "",
+        "props": [
+            {
+                "p": "payload"
+            },
+            {
+                "p": "topic",
+                "vt": "str"
+            }
+        ],
+        "repeat": "60",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "",
+        "payloadType": "date",
+        "x": 190,
+        "y": 260,
+        "wires": [
+            [
+                "541961e536949003"
+            ]
+        ]
+    },
+    {
+        "id": "541961e536949003",
+        "type": "function",
+        "z": "cb1b3f903bd1d9f6",
+        "name": "function 5",
+        "func": "// Δημιουργία ψεύτικων δεδομένων εικόνας\nconst cameraId = \"camera_\" + Math.round(Math.random() * 3 + 1);\nconst uniqueId = Date.now() + \"_\" + Math.round(Math.random() * 10000);\nconst fileName = cameraId + \"_\" + uniqueId + \".jpg\";\nconst fileContent = \"Mock image from \" + cameraId + \" at \" + new Date().toISOString();\n\n// Βάλε τα πάντα στο msg\nmsg.payload = fileContent;\nmsg.fileName = fileName;\nmsg.camera = cameraId;\n\nnode.warn(\"📸 \" + cameraId + \" → \" + fileName + \" (\" + fileContent.length + \" bytes)\");\n\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 380,
+        "y": 260,
+        "wires": [
+            [
+                "2a4d01b7c348cd65"
+            ]
+        ]
+    },
+    {
+        "id": "a82ffc93bf52124d",
+        "type": "debug",
+        "z": "cb1b3f903bd1d9f6",
+        "name": "debug 5",
+        "active": false,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "false",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 820,
+        "y": 260,
+        "wires": []
+    },
+    {
+        "id": "2a4d01b7c348cd65",
+        "type": "http request",
+        "z": "cb1b3f903bd1d9f6",
+        "name": "",
+        "method": "PUT",
+        "ret": "bin",
+        "paytoqs": "ignore",
+        "url": "http://minio:9000/farm-data/{{{msg.fileName}}}",
+        "tls": "",
+        "persist": false,
+        "proxy": "",
+        "insecureHTTPParser": false,
+        "authType": "",
+        "senderr": false,
+        "headers": [
+            {
+                "keyType": "Content-Type",
+                "keyValue": "",
+                "valueType": "other",
+                "valueValue": "application/octet-stream"
+            }
+        ],
+        "x": 570,
+        "y": 260,
+        "wires": [
+            [
+                "a82ffc93bf52124d"
+            ]
+        ]
+    },
+    {
+        "id": "0e770c8a1b3bdc34",
+        "type": "global-config",
+        "env": [],
+        "modules": {
+            "@meowwolf/node-red-contrib-amqp": "2.4.2",
+            "node-red-contrib-s3": "0.1.2"
+        }
+    }
+]

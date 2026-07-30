@@ -1,0 +1,113 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: thingsboard-pvc
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 2Gi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: thingsboard
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: thingsboard
+  template:
+    metadata:
+      labels:
+        app: thingsboard
+    spec:
+      containers:
+      - name: thingsboard
+        image: thingsboard/tb-postgres:3.9.1
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 9090
+          name: http
+        - containerPort: 1883
+          name: mqtt
+        env:
+        - name: TB_QUEUE_TYPE
+          value: "in-memory"
+        # Keycloak host/port από το ConfigMap
+        - name: KEYCLOAK_HOST
+          valueFrom:
+            configMapKeyRef:
+              name: farm-settings
+              key: KEYCLOAK_HOST
+        - name: KEYCLOAK_PORT
+          valueFrom:
+            configMapKeyRef:
+              name: farm-settings
+              key: KEYCLOAK_PORT
+        # OAuth2 ρυθμίσεις για ThingsBoard
+        #- name: TB_OAUTH2_ENABLED
+        #  value: "true"
+        #- name: TB_OAUTH2_CLIENT_ID
+        #  value: "thingsboard"
+        #- name: TB_OAUTH2_CLIENT_SECRET
+        #  valueFrom:
+        #    secretKeyRef:
+        #      name: farm-secrets
+        #      key: KEYCLOAK_CLIENT_SECRET
+        #- name: TB_OAUTH2_AUTHORIZATION_URI
+        #  value: "http://keycloak.172.31.76.79.nip.io/realms/cloudfield/protocol/openid-connect/auth"
+        #- name: TB_OAUTH2_TOKEN_URI
+        # value: "http://keycloak.172.31.76.79.nip.io/realms/cloudfield/protocol/openid-connect/token"
+        #- name: TB_OAUTH2_USER_INFO_URI
+        #  value: "http://keycloak.172.31.76.79.nip.io/realms/cloudfield/protocol/openid-connect/userinfo"
+        #- name: TB_OAUTH2_LOGOUT_URI
+        #  value: "http://keycloak.172.31.76.79.nip.io/realms/cloudfield/protocol/openid-connect/logout"
+        #- name: TB_OAUTH2_REDIRECT_URI
+        #  value: "http://thingsboard.172.31.76.79.nip.io/login/oauth2/code/thingsboard"
+        volumeMounts:
+        - mountPath: /data
+          name: thingsboard-data
+      volumes:
+      - name: thingsboard-data
+        persistentVolumeClaim:
+          claimName: thingsboard-pvc
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: thingsboard
+spec:
+  selector:
+    app: thingsboard
+  ports:
+    - name: http
+      port: 9090
+      targetPort: 9090
+    - name: mqtt
+      port: 1883
+      targetPort: 1883
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: thingsboard-ingress
+  annotations:
+    nginx.ingress.kubernetes.io/configuration-snippet: |
+      proxy_set_header X-Forwarded-Prefix /;
+      proxy_set_header X-Forwarded-Proto $scheme;
+      proxy_set_header Host $host;
+spec:
+  ingressClassName: nginx
+  rules:
+  - host: thingsboard.172.31.76.79.nip.io
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: thingsboard
+            port:
+              number: 9090
