@@ -1,0 +1,53 @@
+# ═══════════════════════════════════════════════════════════════
+# ArgoCD Ingress – HTTP mode (insecure)
+# URL: http://argocd.172.31.76.79.nip.io
+# ═══════════════════════════════════════════════════════════════
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: argocd-ingress
+  namespace: argocd
+  annotations:
+    nginx.ingress.kubernetes.io/force-ssl-redirect: "false"
+    nginx.ingress.kubernetes.io/ssl-redirect: "false"
+spec:
+  ingressClassName: nginx
+  rules:
+  - host: argocd.172.31.76.79.nip.io
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: argocd-server
+            port:
+              number: 80
+---
+# ═══════════════════════════════════════════════════════════════
+# ArgoCD Application – CloudField
+# Παρακολουθεί το GitHub repo και κάνει auto-sync
+# ═══════════════════════════════════════════════════════════════
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: cloudfield
+  namespace: argocd
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/tsilian9/cloudfield.git
+    targetRevision: main
+    path: .
+    directory:
+      include: "*.yaml"
+      exclude: "argocd.yaml"
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: default
+  syncPolicy:
+    automated:
+      prune: false
+      selfHeal: true
+    syncOptions:
+    - CreateNamespace=true
