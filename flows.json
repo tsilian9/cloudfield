@@ -1,0 +1,84 @@
+[
+    {
+        "id": "2ac4da15793d441e",
+        "type": "tab",
+        "label": "Flow 1",
+        "disabled": false,
+        "info": "",
+        "env": []
+    },
+    {
+        "id": "d1d189f2f14d2a34",
+        "type": "amqp-broker",
+        "name": "",
+        "host": "rabbitmq",
+        "port": 5672,
+        "vhost": "",
+        "tls": false,
+        "credsFromSettings": false
+    },
+    {
+        "id": "dc0078247c3b2196",
+        "type": "inject",
+        "z": "2ac4da15793d441e",
+        "name": "",
+        "props": [
+            {
+                "p": "payload"
+            },
+            {
+                "p": "topic",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "45",
+        "payloadType": "num",
+        "x": 150,
+        "y": 140,
+        "wires": [
+            [
+                "01901980a42b8411",
+                "daba8ef76ff2ea76"
+            ]
+        ]
+    },
+    {
+        "id": "01901980a42b8411",
+        "type": "debug",
+        "z": "2ac4da15793d441e",
+        "name": "debug 1",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "false",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 320,
+        "y": 140,
+        "wires": []
+    },
+    {
+        "id": "daba8ef76ff2ea76",
+        "type": "amqp-out",
+        "z": "2ac4da15793d441e",
+        "name": "",
+        "broker": "d1d189f2f14d2a34",
+        "exchangeName": "amq.topic",
+        "exchangeType": "topic",
+        "exchangeRoutingKey": "farm.humidity",
+        "exchangeRoutingKeyType": "str",
+        "exchangeDurable": true,
+        "amqpProperties": "{ \"headers\": {} }",
+        "rpcTimeoutMilliseconds": 3000,
+        "outputs": 0,
+        "x": 370,
+        "y": 240,
+        "wires": []
+    }
+]
