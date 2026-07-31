@@ -25,8 +25,8 @@ spec:
     spec:
       containers:
       - name: nodered
-        image: nodered/node-red@sha256:6cb1b27fa5a83deec6a662db62eec8bb32e55ac5412d6b7a653e874ce62055d5
-        imagePullPolicy: IfNotPresent
+        image: tsilian9/cloudfield-nodered:latest
+        imagePullPolicy: Always
         ports:
         - containerPort: 1880
         env:
