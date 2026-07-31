@@ -1,0 +1,141 @@
+---
+# ═══════════════════════════════════════════════════════════════
+# CloudField Ansible Playbook
+# Εκτελεί: kubectl apply, MinIO lifecycle, ConfigMap update
+# Χρήση: ansible-playbook -i inventory.ini playbook.yml
+# ═══════════════════════════════════════════════════════════════
+- name: CloudField – Deploy & Configure
+  hosts: cloudfield
+  gather_facts: false
+
+  vars:
+    project_dir: "/mnt/c/Users/billx/Desktop/CloudField"
+    minio_url: "http://minio.172.31.76.79.nip.io"
+    minio_user: "minioadmin"
+    minio_pass: "minioadmin"
+
+  tasks:
+
+    # ── D.4: kubectl apply για όλα τα YAMLs ───────────────────
+    - name: "D.4 | Apply RabbitMQ"
+      command: kubectl apply -f "{{ project_dir }}/rabbitmq.yaml"
+      register: rabbitmq_result
+      changed_when: "'configured' in rabbitmq_result.stdout or 'created' in rabbitmq_result.stdout"
+
+    - name: "D.4 | Apply MinIO"
+      command: kubectl apply -f "{{ project_dir }}/minio.yaml"
+      register: minio_result
+      changed_when: "'configured' in minio_result.stdout or 'created' in minio_result.stdout"
+
+    - name: "D.4 | Apply ThingsBoard"
+      command: kubectl apply -f "{{ project_dir }}/thingsboard.yaml"
+      register: tb_result
+      changed_when: "'configured' in tb_result.stdout or 'created' in tb_result.stdout"
+
+    - name: "D.4 | Apply Keycloak"
+      command: kubectl apply -f "{{ project_dir }}/keycloak.yaml"
+      register: keycloak_result
+      changed_when: "'configured' in keycloak_result.stdout or 'created' in keycloak_result.stdout"
+
+    - name: "D.4 | Apply Node-RED"
+      command: kubectl apply -f "{{ project_dir }}/nodered.yaml"
+      register: nodered_result
+      changed_when: "'configured' in nodered_result.stdout or 'created' in nodered_result.stdout"
+
+    - name: "D.4 | Apply ArgoCD Ingress & Application"
+      command: kubectl apply -f "{{ project_dir }}/argocd.yaml"
+      register: argocd_result
+      changed_when: "'configured' in argocd_result.stdout or 'created' in argocd_result.stdout"
+
+    - name: "D.4 | Show apply results"
+      debug:
+        msg:
+          - "RabbitMQ: {{ rabbitmq_result.stdout_lines }}"
+          - "MinIO: {{ minio_result.stdout_lines }}"
+          - "ThingsBoard: {{ tb_result.stdout_lines }}"
+          - "Node-RED: {{ nodered_result.stdout_lines }}"
+
+    # ── D.5: MinIO lifecycle policy μέσω mc ───────────────────
+    - name: "D.5 | Check if mc (MinIO Client) is installed"
+      command: which mc
+      register: mc_check
+      ignore_errors: true
+      changed_when: false
+
+    - name: "D.5 | Install mc if not present"
+      shell: |
+        curl -fsSL https://dl.min.io/client/mc/release/linux-amd64/mc -o /usr/local/bin/mc
+        chmod +x /usr/local/bin/mc
+      when: mc_check.rc != 0
+      become: true
+
+    - name: "D.5 | Configure mc alias for MinIO"
+      command: >
+        mc alias set cloudfield
+        {{ minio_url }}
+        {{ minio_user }}
+        {{ minio_pass }}
+        --api S3v4
+      register: mc_alias
+      changed_when: false
+      ignore_errors: true
+
+    - name: "D.5 | Set lifecycle policy – farm-data (30 days retention)"
+      shell: |
+        mc ilm rule add \
+          --expire-days 30 \
+          cloudfield/farm-data
+      register: lifecycle_result
+      ignore_errors: true
+      changed_when: "'Added' in lifecycle_result.stdout"
+
+    - name: "D.5 | Set lifecycle policy – farm-camera-photos (7 days retention)"
+      shell: |
+        mc ilm rule add \
+          --expire-days 7 \
+          cloudfield/farm-camera-photos
+      register: lifecycle_cam_result
+      ignore_errors: true
+      changed_when: "'Added' in lifecycle_cam_result.stdout"
+
+    - name: "D.5 | Show lifecycle results"
+      debug:
+        msg:
+          - "farm-data: {{ lifecycle_result.stdout | default('skipped') }}"
+          - "farm-camera-photos: {{ lifecycle_cam_result.stdout | default('skipped') }}"
+
+    # ── D.6: Ενημέρωση ConfigMap nodered-flow ─────────────────
+    - name: "D.6 | Generate nodered-flow ConfigMap from flows.json"
+      command: >
+        kubectl create configmap nodered-flow
+        --from-file=flows.json="{{ project_dir }}/flows.json"
+        --dry-run=client
+        -o yaml
+      register: configmap_yaml
+      changed_when: false
+
+    - name: "D.6 | Apply updated nodered-flow ConfigMap"
+      shell: |
+        kubectl create configmap nodered-flow \
+          --from-file=flows.json="{{ project_dir }}/flows.json" \
+          --dry-run=client -o yaml | kubectl apply -f -
+      register: configmap_result
+      changed_when: "'configured' in configmap_result.stdout or 'created' in configmap_result.stdout"
+
+    - name: "D.6 | Restart Node-RED to pick up new flows"
+      command: kubectl rollout restart deployment nodered
+      when: configmap_result.changed
+
+    - name: "D.6 | Show ConfigMap result"
+      debug:
+        msg: "ConfigMap nodered-flow: {{ configmap_result.stdout }}"
+
+    # ── Summary ────────────────────────────────────────────────
+    - name: "✅ CloudField deployment complete!"
+      debug:
+        msg:
+          - "Node-RED:    http://nodered.172.31.76.79.nip.io"
+          - "ThingsBoard: http://thingsboard.172.31.76.79.nip.io"
+          - "MinIO:       http://minio.172.31.76.79.nip.io"
+          - "ArgoCD:      http://argocd.172.31.76.79.nip.io"
+          - "Jenkins:     http://jenkins.172.31.76.79.nip.io"
