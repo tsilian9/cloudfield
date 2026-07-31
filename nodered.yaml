@@ -25,7 +25,7 @@ spec:
     spec:
       containers:
       - name: nodered
-        image: tsilian9/cloudfield-nodered:latest
+        image: tsilian9/cloudfield-nodered:8
         imagePullPolicy: Always
         ports:
         - containerPort: 1880
