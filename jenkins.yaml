@@ -63,7 +63,8 @@ spec:
         supplementalGroups: [1001]
       containers:
       - name: jenkins
-        image: jenkins/jenkins:lts-jdk17
+        image: tsilian9/cloudfield-jenkins:latest
+        imagePullPolicy: Always
         ports:
         - containerPort: 8080
           name: http
@@ -92,6 +93,8 @@ spec:
         hostPath:
           path: /var/run/docker.sock
           type: Socket
+      - name: docker-bin
+        emptyDir: {}
 ---
 # ── Jenkins Service ────────────────────────────────────────────
 apiVersion: v1

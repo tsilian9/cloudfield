@@ -1,0 +1,18 @@
+# ═══════════════════════════════════════════════════════════════
+# Custom Jenkins Image με Docker CLI (COPY από local binary)
+# Docker Hub: tsilian9/cloudfield-jenkins:latest
+# 
+# ΠΡΙΝ το build, κατέβασε το docker binary:
+#   curl -fsSL https://download.docker.com/linux/static/stable/x86_64/docker-27.3.1.tgz \
+#     | tar xz --strip-components=1 docker/docker
+# ═══════════════════════════════════════════════════════════════
+FROM jenkins/jenkins:lts-jdk17
+
+USER root
+
+# Αντιγραφή του Docker CLI binary από τον local φάκελο
+COPY docker /usr/local/bin/docker
+RUN chmod +x /usr/local/bin/docker
+
+# Επιστροφή στον jenkins user
+USER jenkins
