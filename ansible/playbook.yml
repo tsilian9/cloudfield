@@ -55,7 +55,7 @@
           - "ThingsBoard: {{ tb_result.stdout_lines }}"
           - "Node-RED: {{ nodered_result.stdout_lines }}"
 
-    # ── D.5: MinIO lifecycle policy μέσω mc ───────────────────
+    # ── D.5: MinIO lifecycle policy μέσω mc + port-forward ───
     - name: "D.5 | Check if mc (MinIO Client) is installed"
       command: which mc
       register: mc_check
@@ -69,40 +69,38 @@
       when: mc_check.rc != 0
       become: true
 
-    - name: "D.5 | Configure mc alias for MinIO"
-      command: >
-        mc alias set cloudfield
-        {{ minio_url }}
-        {{ minio_user }}
-        {{ minio_pass }}
-        --api S3v4
-      register: mc_alias
-      changed_when: false
-      ignore_errors: true
-
-    - name: "D.5 | Set lifecycle policy – farm-data (30 days retention)"
+    - name: "D.5 | Apply MinIO lifecycle via port-forward"
       shell: |
-        mc ilm rule add \
-          --expire-days 30 \
-          cloudfield/farm-data
+        # Ξεκίνα port-forward στο background
+        kubectl port-forward svc/minio 9000:9000 &
+        PF_PID=$!
+        sleep 3
+
+        # Ρύθμισε mc alias με localhost:9000
+        mc alias set cloudfield http://localhost:9000 {{ minio_user }} {{ minio_pass }} --api S3v4
+
+        # Δημιούργησε buckets αν δεν υπάρχουν
+        mc mb --ignore-existing cloudfield/farm-data
+        mc mb --ignore-existing cloudfield/farm-images
+
+        # Εφάρμοσε lifecycle policies
+        mc ilm rule add --expire-days 30 cloudfield/farm-data
+        mc ilm rule add --expire-days 7 cloudfield/farm-images
+
+        # Εμφάνισε τα rules
+        echo "=== farm-data lifecycle ==="
+        mc ilm rule ls cloudfield/farm-data
+        echo "=== farm-images lifecycle ==="
+        mc ilm rule ls cloudfield/farm-images
+
+        # Σκότωσε το port-forward
+        kill $PF_PID 2>/dev/null || true
       register: lifecycle_result
-      ignore_errors: true
-      changed_when: "'Added' in lifecycle_result.stdout"
-
-    - name: "D.5 | Set lifecycle policy – farm-camera-photos (7 days retention)"
-      shell: |
-        mc ilm rule add \
-          --expire-days 7 \
-          cloudfield/farm-camera-photos
-      register: lifecycle_cam_result
-      ignore_errors: true
-      changed_when: "'Added' in lifecycle_cam_result.stdout"
+      changed_when: true
 
     - name: "D.5 | Show lifecycle results"
       debug:
-        msg:
-          - "farm-data: {{ lifecycle_result.stdout | default('skipped') }}"
-          - "farm-camera-photos: {{ lifecycle_cam_result.stdout | default('skipped') }}"
+        msg: "{{ lifecycle_result.stdout_lines }}"
 
     # ── D.6: Ενημέρωση ConfigMap nodered-flow ─────────────────
     - name: "D.6 | Generate nodered-flow ConfigMap from flows.json"

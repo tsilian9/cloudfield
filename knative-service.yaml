@@ -1,0 +1,41 @@
+# ═══════════════════════════════════════════════════════════════
+# Knative Service – CloudField Image Analyzer
+# URL: http://image-analyzer.default.172.31.76.79.nip.io
+# ═══════════════════════════════════════════════════════════════
+apiVersion: serving.knative.dev/v1
+kind: Service
+metadata:
+  name: image-analyzer
+  namespace: default
+  labels:
+    app: image-analyzer
+    project: cloudfield
+spec:
+  template:
+    metadata:
+      annotations:
+        # Scale to zero μετά από 60 δευτερόλεπτα αδράνειας
+        autoscaling.knative.dev/scale-to-zero-pod-retention-period: "60s"
+        # Minimum 0 replicas (true serverless)
+        autoscaling.knative.dev/minScale: "0"
+        # Maximum 3 replicas
+        autoscaling.knative.dev/maxScale: "3"
+    spec:
+      containers:
+      - image: tsilian9/cloudfield-image-analyzer:latest
+        ports:
+        - containerPort: 8080
+        env:
+        - name: MINIO_ENDPOINT
+          value: "http://minio.default.svc.cluster.local:9000"
+        - name: MINIO_ACCESS_KEY
+          value: "minioadmin"
+        - name: MINIO_SECRET_KEY
+          value: "minioadmin"
+        resources:
+          requests:
+            memory: "128Mi"
+            cpu: "100m"
+          limits:
+            memory: "256Mi"
+            cpu: "500m"
