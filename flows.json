@@ -12,7 +12,7 @@
         "type": "tab",
         "label": "Valve Commands (Idempotency)",
         "disabled": false,
-        "info": "Idempotency pattern: αποτρέπει διπλές εντολές στη valve.commands queue",
+        "info": "Idempotency pattern: prevents duplicate commands in the valve.commands queue",
         "env": []
     },
     {
@@ -143,8 +143,8 @@
         "id": "fn-idempotency-check",
         "type": "function",
         "z": "tab-idempotency",
-        "name": "Function 4 – Idempotency Check",
-        "func": "// ═══════════════════════════════════════════════════\n// Idempotency Pattern – Φάση H\n// Αποτρέπει διπλές εντολές στη valve.commands queue\n// Χρησιμοποιεί flow context για αποθήκευση τελευταίας εντολής\n// ═══════════════════════════════════════════════════\n\nvar payload = msg.payload;\n\n// Κανονικοποίησε: αγνόησε το timestamp για σύγκριση\nvar cmdKey = payload.command + ':' + payload.valve;\n\n// Διάβασε την τελευταία εντολή από το flow context\nvar lastCmdKey = flow.get('lastValveCommand') || null;\nvar lastCmdTime = flow.get('lastValveCommandTime') || 0;\nvar now = Date.now();\n\n// Idempotency window: 5 δευτερόλεπτα\n// Αν η ίδια εντολή έχει σταλεί στα τελευταία 5s → skip\nvar IDEMPOTENCY_WINDOW_MS = 5000;\n\nif (lastCmdKey === cmdKey && (now - lastCmdTime) < IDEMPOTENCY_WINDOW_MS) {\n    // DUPLICATE εντολή – αγνόησε\n    node.warn('IDEMPOTENT SKIP: Duplicate command \"' + cmdKey + '\" within ' + IDEMPOTENCY_WINDOW_MS + 'ms window');\n    node.status({fill:'yellow', shape:'ring', text:'DUPLICATE: ' + cmdKey});\n    return null;  // Σταμάτα το flow – μην στείλεις στο RabbitMQ\n}\n\n// Νέα εντολή – αποθήκευσε στο context και προχώρα\nflow.set('lastValveCommand', cmdKey);\nflow.set('lastValveCommandTime', now);\n\n// Πρόσθεσε timestamp στο payload\nmsg.payload.timestamp = new Date().toISOString();\nmsg.payload.idempotencyKey = cmdKey + ':' + now;\n\nnode.status({fill:'green', shape:'dot', text:'SENT: ' + cmdKey});\nnode.log('IDEMPOTENT PASS: New command \"' + cmdKey + '\" – forwarding to RabbitMQ');\n\nreturn msg;",
+        "name": "Function 4 - Idempotency Check",
+        "func": "// ===================================================\n// Idempotency Pattern - Phase H\n// Prevents duplicate commands in the valve.commands queue\n// Uses flow context to store the last command\n// ===================================================\n\nvar payload = msg.payload;\n\n// Normalize: ignore timestamp for comparison\nvar cmdKey = payload.command + ':' + payload.valve;\n\n// Read the last command from flow context\nvar lastCmdKey = flow.get('lastValveCommand') || null;\nvar lastCmdTime = flow.get('lastValveCommandTime') || 0;\nvar now = Date.now();\n\n// Idempotency window: 5 seconds\n// If the same command was sent within the last 5s -> skip\nvar IDEMPOTENCY_WINDOW_MS = 5000;\n\nif (lastCmdKey === cmdKey && (now - lastCmdTime) < IDEMPOTENCY_WINDOW_MS) {\n    // DUPLICATE command - ignore\n    node.warn('IDEMPOTENT SKIP: Duplicate command \"' + cmdKey + '\" within ' + IDEMPOTENCY_WINDOW_MS + 'ms window');\n    node.status({fill:'yellow', shape:'ring', text:'DUPLICATE: ' + cmdKey});\n    return null;  // Stop the flow - do not send to RabbitMQ\n}\n\n// New command - save to context and proceed\nflow.set('lastValveCommand', cmdKey);\nflow.set('lastValveCommandTime', now);\n\n// Add timestamp to payload\nmsg.payload.timestamp = new Date().toISOString();\nmsg.payload.idempotencyKey = cmdKey + ':' + now;\n\nnode.status({fill:'green', shape:'dot', text:'SENT: ' + cmdKey});\nnode.log('IDEMPOTENT PASS: New command \"' + cmdKey + '\" - forwarding to RabbitMQ');\n\nreturn msg;",
         "outputs": 1,
         "timeout": 0,
         "noerr": 0,
@@ -182,7 +182,7 @@
         "id": "debug-idempotency",
         "type": "debug",
         "z": "tab-idempotency",
-        "name": "debug – sent to RabbitMQ",
+        "name": "debug - sent to RabbitMQ",
         "active": true,
         "tosidebar": true,
         "console": false,

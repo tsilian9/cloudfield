@@ -1,10 +1,10 @@
 # CloudField IoT Platform 🌾
 
-**Cloud-Native Smart Agriculture Platform** – Παρακολούθηση υγρασίας εδάφους και αυτοματοποίηση ποτίσματος σε καλλιέργειες.
+**Cloud-Native Smart Agriculture Platform** – Soil moisture monitoring and automated irrigation for crops.
 
 ---
 
-## 🏗️ Αρχιτεκτονική
+## 🏗️ Architecture
 
 ```mermaid
 graph TB
@@ -70,8 +70,8 @@ graph TB
 
 ## 🌐 Service URLs
 
-| Υπηρεσία | URL | Credentials |
-|----------|-----|-------------|
+| Service | URL | Credentials |
+|---------|-----|-------------|
 | Node-RED | http://nodered.172.31.76.79.nip.io | - |
 | ThingsBoard | http://thingsboard.172.31.76.79.nip.io | sysadmin@thingsboard.org / sysadmin |
 | RabbitMQ | http://rabbitmq.172.31.76.79.nip.io | guest / guest |
@@ -84,15 +84,15 @@ graph TB
 
 ---
 
-## 📦 Υπηρεσίες & Τεχνολογίες
+## 📦 Services & Technologies
 
-| Υπηρεσία | Τεχνολογία | Namespace | Σκοπός |
-|----------|-----------|-----------|--------|
-| Node-RED | Kubernetes Deployment | default | Προσομοίωση αισθητήρων, MQTT, AMQP flows |
+| Service | Technology | Namespace | Purpose |
+|---------|-----------|-----------|---------|
+| Node-RED | Kubernetes Deployment | default | Sensor simulation, MQTT, AMQP flows |
 | ThingsBoard | Kubernetes Deployment | default | IoT Dashboard, Rule Engine, Alarms |
-| RabbitMQ | Kubernetes Deployment | default | Message broker για valve commands |
-| MinIO | Kubernetes Deployment | default | Object storage για εικόνες καμερών |
-| Keycloak | Kubernetes Deployment | default | SSO για ThingsBoard + MinIO |
+| RabbitMQ | Kubernetes Deployment | default | Message broker for valve commands |
+| MinIO | Kubernetes Deployment | default | Object storage for camera images |
+| Keycloak | Kubernetes Deployment | default | SSO for ThingsBoard + MinIO |
 | Image Analyzer | Knative Service | default | Serverless image metadata extraction |
 | Jenkins | Kubernetes Deployment | default | CI/CD pipeline |
 | ArgoCD | Kubernetes Deployment | argocd | GitOps continuous deployment |
@@ -104,44 +104,44 @@ graph TB
 ## 🔄 End-to-End Flow
 
 ```
-1. Node-RED (κάθε 30s):
-   - Παράγει τυχαία τιμή υγρασίας (20-80%)
-   - Τραβάει καιρό από Open-Meteo API
-   - Στέλνει telemetry μέσω MQTT στο ThingsBoard
-   - Στέλνει farm.humidity + farm.tank στο RabbitMQ
+1. Node-RED (every 30s):
+   - Generates random soil moisture value (20-80%)
+   - Fetches weather from Open-Meteo API
+   - Sends telemetry via MQTT to ThingsBoard
+   - Sends farm.humidity + farm.tank to RabbitMQ
 
 2. ThingsBoard Rule Engine:
-   - IF υγρασία < 30% AND δεν βρέχει → OPEN_VALVE_1
-   - Στέλνει RPC command στο Node-RED
-   - Δημιουργεί Alarm
+   - IF moisture < 30% AND no rain forecast -> OPEN_VALVE_1
+   - Sends RPC command to Node-RED
+   - Creates Alarm
 
 3. Node-RED (Valve Controller):
-   - Λαμβάνει RPC από ThingsBoard
-   - Function 4 (Idempotency Check): αποτρέπει διπλές εντολές
-   - Στέλνει εντολή στο RabbitMQ (valve.commands queue)
+   - Receives RPC from ThingsBoard
+   - Function 4 (Idempotency Check): prevents duplicate commands
+   - Sends command to RabbitMQ (valve.commands queue)
 
 4. MinIO:
-   - Node-RED ανεβάζει mock εικόνες κάθε 60s
-   - S3 Event Notification → Knative image-analyzer
-   - Lifecycle Policy: αυτόματη διαγραφή μετά 90 ημέρες
+   - Node-RED uploads mock images every 60s
+   - S3 Event Notification -> Knative image-analyzer
+   - Lifecycle Policy: automatic deletion after 90 days
 
 5. Keycloak SSO:
-   - Single Sign-On για ThingsBoard + MinIO
+   - Single Sign-On for ThingsBoard + MinIO
    - Realm: cloudfield
    - Clients: thingsboard-client, minio-client
 
 6. Monitoring:
-   - Prometheus scrape-άρει RabbitMQ metrics
+   - Prometheus scrapes RabbitMQ metrics
    - Grafana Dashboard: Queue Depth, Connections, CPU/Memory
-   - Alert: queue_messages > 10 → Critical
+   - Alert: queue_messages > 10 -> Critical
 ```
 
 ---
 
-## 🚀 Εγκατάσταση
+## 🚀 Installation
 
-### Προαπαιτούμενα
-- MicroK8s με addons: `dns`, `ingress`, `storage`, `observability`, `knative`
+### Prerequisites
+- MicroK8s with addons: `dns`, `ingress`, `storage`, `observability`, `knative`
 - kubectl configured
 - Docker Hub account
 
@@ -151,13 +151,13 @@ git clone https://github.com/tsilian9/cloudfield.git
 cd cloudfield
 ```
 
-### 2. Deploy με Ansible
+### 2. Deploy with Ansible
 ```bash
 cd ansible
 ansible-playbook playbook.yml
 ```
 
-### 3. Deploy με kubectl (manual)
+### 3. Deploy with kubectl (manual)
 ```bash
 kubectl apply -f rabbitmq.yaml
 kubectl apply -f minio.yaml
@@ -179,7 +179,7 @@ tofu init
 tofu apply
 ```
 
-### 5. Επαλήθευση
+### 5. Verify
 ```bash
 kubectl get pods
 kubectl get ingress
@@ -189,26 +189,26 @@ kubectl get ingress
 
 ## 📊 SLA Classes
 
-| Class | Latency (p95) | Availability | Υπηρεσίες |
-|-------|--------------|--------------|-----------|
+| Class | Latency (p95) | Availability | Services |
+|-------|--------------|--------------|---------|
 | 🥇 **Gold** | < 100ms | 99.9% | RabbitMQ (99ms), MinIO (98ms), Node-RED (92ms) |
 | 🥈 **Silver** | < 5s | 99.5% | Knative warm start (2.8s), ThingsBoard, Keycloak |
 | 🥉 **Bronze** | < 30s | 99.0% | Knative cold start (6.7s), Jenkins builds |
 
-Δες αναλυτικά: [sla-report.md](sla-report.md)
+See full report: [sla-report.md](sla-report.md)
 
 ---
 
-## 🔒 Idempotency Pattern (Φάση H)
+## 🔒 Idempotency Pattern (Phase H)
 
-Το **function 4** στο Node-RED Valve Controller υλοποιεί idempotency:
-- **5-second window**: Αν η ίδια εντολή σταλεί 2 φορές μέσα σε 5s → SKIP
-- **Flow context**: Αποθηκεύει `lastValveCommand` + `lastValveCommandTime`
-- **Αποτέλεσμα**: Αποτρέπει διπλές εντολές στη `valve.commands` queue
+**Function 4** in the Node-RED Valve Controller implements idempotency:
+- **5-second window**: If the same command is sent twice within 5s -> SKIP
+- **Flow context**: Stores `lastValveCommand` + `lastValveCommandTime`
+- **Result**: Prevents duplicate commands in the `valve.commands` queue
 
 ---
 
-## 📁 Δομή Project
+## 📁 Project Structure
 
 ```
 cloudfield/
@@ -219,7 +219,7 @@ cloudfield/
 ├── keycloak.yaml          # Keycloak Deployment + Service + Ingress
 ├── jenkins.yaml           # Jenkins Deployment + Service + Ingress
 ├── argocd.yaml            # ArgoCD Application
-├── monitoring.yaml        # ServiceMonitor για RabbitMQ
+├── monitoring.yaml        # ServiceMonitor for RabbitMQ
 ├── knative-service.yaml   # Knative Service (image-analyzer)
 ├── nodered-flow.yaml      # Node-RED flows ConfigMap
 ├── nodered-configmap.yaml # Node-RED settings ConfigMap
@@ -231,7 +231,7 @@ cloudfield/
 ├── Jenkinsfile            # Jenkins Pipeline
 ├── docker-compose.yml     # Local development
 ├── sla-measure.sh         # SLA measurement script
-├── sla-report.md          # SLA report με πραγματικές μετρήσεις
+├── sla-report.md          # SLA report with real measurements
 ├── sla-results.txt        # Raw measurement results
 ├── ansible/
 │   ├── inventory.ini      # Ansible inventory
@@ -261,8 +261,8 @@ cloudfield/
   - Redirect URI: `http://minio.172.31.76.79.nip.io/*`
 
 ### Users
-| Username | Role | Πρόσβαση |
-|----------|------|---------|
+| Username | Role | Access |
+|----------|------|--------|
 | admin | TENANT_ADMIN | ThingsBoard + MinIO |
 | farm-operator | CUSTOMER_USER | ThingsBoard dashboard only |
 
@@ -293,20 +293,20 @@ cloudfield/
 ## 🛠️ CI/CD Pipeline (Jenkins + ArgoCD)
 
 ```
-Developer → git push → GitHub
-                          ↓
-                      Jenkins (Webhook)
-                          ↓
-                    Build Docker Image
-                          ↓
-                    Push to Docker Hub
-                          ↓
-                      ArgoCD (GitOps)
-                          ↓
-                    kubectl apply → MicroK8s
+Developer -> git push -> GitHub
+                           |
+                       Jenkins (Webhook)
+                           |
+                     Build Docker Image
+                           |
+                     Push to Docker Hub
+                           |
+                       ArgoCD (GitOps)
+                           |
+                     kubectl apply -> MicroK8s
 ```
 
 ---
 
 *CloudField IoT Platform v1.0 | 2026-08-01*  
-*Περιβάλλον: MicroK8s on Ubuntu VM (172.31.76.79)*
+*Environment: MicroK8s on Ubuntu VM (172.31.76.79)*

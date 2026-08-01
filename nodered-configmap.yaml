@@ -1,0 +1,95 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: nodered-settings
+data:
+  settings.js: |
+    /**
+     * Node-RED Settings for CloudField IoT Platform
+     * https://nodered.org/docs/user-guide/runtime/configuration
+     */
+
+    module.exports = {
+
+        /** The file containing the flows. */
+        flowFile: 'flows.json',
+
+        /** Pretty-print the flow JSON for easier version control diffs. */
+        flowFilePretty: true,
+
+        /** The tcp port that the Node-RED web server is listening on */
+        uiPort: process.env.PORT || 1880,
+
+        /** Configure diagnostics options */
+        diagnostics: {
+            enabled: true,
+            ui: true,
+        },
+
+        /** Configure runtimeState options */
+        runtimeState: {
+            enabled: false,
+            ui: false,
+        },
+
+        /** Telemetry settings */
+        telemetry: {},
+
+        /** Configure the logging output */
+        logging: {
+            console: {
+                level: "info",
+                metrics: false,
+                audit: false
+            }
+        },
+
+        exportGlobalContextKeys: false,
+
+        externalModules: {},
+
+        /** Allow the Function node to load additional npm modules directly */
+        functionExternalModules: true,
+
+        /** Default timeout (in seconds) for all Function nodes. 0 = no timeout */
+        globalFunctionTimeout: 0,
+
+        functionTimeout: 0,
+
+        /** Predefined values in Global Context */
+        functionGlobalContext: {
+            // os: require('os'),
+        },
+
+        /** Maximum length of debug messages */
+        debugMaxLength: 1000,
+
+        /** Retry time in milliseconds for MQTT connections */
+        mqttReconnectTime: 15000,
+
+        /** Retry time in milliseconds for Serial port connections */
+        serialReconnectTime: 15000,
+
+        /** Editor theme settings */
+        editorTheme: {
+            palette: {},
+            projects: {
+                enabled: false,
+                workflow: {
+                    mode: "manual"
+                }
+            },
+            codeEditor: {
+                lib: "monaco",
+                options: {}
+            },
+            markdownEditor: {
+                mermaid: {
+                    enabled: true
+                }
+            },
+            multiplayer: {
+                enabled: false
+            },
+        },
+    }

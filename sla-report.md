@@ -1,15 +1,15 @@
 # CloudField IoT Platform – SLA Report
 
-**Ημερομηνία:** 2026-08-01  
-**Περιβάλλον:** MicroK8s on Ubuntu VM (172.31.76.79)  
-**Έκδοση:** v1.0
+**Date:** 2026-08-01  
+**Environment:** MicroK8s on Ubuntu VM (172.31.76.79)  
+**Version:** v1.0
 
 ---
 
-## 1. Αρχιτεκτονική & Υπηρεσίες
+## 1. Architecture & Services
 
-| Υπηρεσία | Τεχνολογία | Namespace | URL |
-|----------|-----------|-----------|-----|
+| Service | Technology | Namespace | URL |
+|---------|-----------|-----------|-----|
 | Node-RED | Kubernetes Deployment | default | nodered.172.31.76.79.nip.io |
 | ThingsBoard | Kubernetes Deployment | default | thingsboard.172.31.76.79.nip.io |
 | RabbitMQ | Kubernetes Deployment | default | rabbitmq.172.31.76.79.nip.io |
@@ -34,37 +34,37 @@
 
 ## 3. G.1 – Knative Cold Start Latency
 
-**Ορισμός:** Χρόνος από το πρώτο HTTP request (μετά από scale-to-zero) μέχρι την απάντηση.
+**Definition:** Time from the first HTTP request (after scale-to-zero) until the response.
 
-**Μεθοδολογία:**
-1. Αναμονή 65 δευτερολέπτων για scale-to-zero
-2. Αποστολή POST request στο `/` endpoint
-3. Μέτρηση με `curl -w "%{time_total}"`
+**Methodology:**
+1. Wait 65 seconds for scale-to-zero
+2. Send POST request to the `/` endpoint
+3. Measure with `curl -w "%{time_total}"`
 
-**Αποτελέσματα (πραγματικές μετρήσεις – 2026-08-01):**
+**Results (real measurements – 2026-08-01):**
 
-| Μέτρηση | Τιμή |
-|---------|------|
+| Metric | Value |
+|--------|-------|
 | Cold Start Latency | **6.747s** |
 | SLA Class | 🥉 Bronze |
 | Target | < 30s |
 | Status | ✅ PASS |
 
-**Ανάλυση:**
-- Το Knative κάνει scale-to-zero μετά από 60 δευτερόλεπτα αδράνειας
-- Το cold start περιλαμβάνει: pod scheduling + container pull + Flask startup
-- Αποδεκτό για batch processing (image analysis)
+**Analysis:**
+- Knative scales to zero after 60 seconds of inactivity
+- Cold start includes: pod scheduling + container pull + Flask startup
+- Acceptable for batch processing (image analysis)
 
 ---
 
 ## 4. G.2 – Knative Warm Start Latency
 
-**Ορισμός:** Χρόνος απόκρισης όταν το pod ήδη τρέχει (5 διαδοχικές μετρήσεις).
+**Definition:** Response time when the pod is already running (5 consecutive measurements).
 
-**Αποτελέσματα:**
+**Results:**
 
-| Μέτρηση | Τιμή |
-|---------|------|
+| Metric | Value |
+|--------|-------|
 | Warm Start Min | **1.992s** |
 | Warm Start Max | **4.025s** |
 | Warm Start Avg | **2.807s** |
@@ -72,7 +72,7 @@
 | Target | < 5s |
 | Status | ✅ PASS |
 
-**Αποτελέσματα ανά μέτρηση:**
+**Results per measurement:**
 | # | Latency |
 |---|---------|
 | 1 | 1.992s |
@@ -81,21 +81,21 @@
 | 4 | 4.025s |
 | 5 | 1.999s |
 
-**Ανάλυση:**
-- Το warm start είναι ~2-4s λόγω Kourier port-forward overhead σε single-node MicroK8s
-- Σε production cluster με LoadBalancer, αναμένεται < 100ms (Gold SLA)
-- Κατάλληλο για Silver SLA (telemetry processing)
+**Analysis:**
+- Warm start is ~2-4s due to Kourier port-forward overhead on single-node MicroK8s
+- In a production cluster with LoadBalancer, expected < 100ms (Gold SLA)
+- Suitable for Silver SLA (telemetry processing)
 
 ---
 
 ## 5. G.3 – End-to-End Latency
 
-**Ορισμός:** Χρόνος απόκρισης των κύριων υπηρεσιών της πλατφόρμας.
+**Definition:** Response time of the main platform services.
 
 ### 5.1 RabbitMQ Management API
 
-| Μέτρηση | Τιμή |
-|---------|------|
+| Metric | Value |
+|--------|-------|
 | API Response Time | **0.099s** |
 | SLA Class | 🥇 Gold |
 | Target | < 100ms |
@@ -103,8 +103,8 @@
 
 ### 5.2 MinIO Object Storage
 
-| Μέτρηση | Τιμή |
-|---------|------|
+| Metric | Value |
+|--------|-------|
 | Health Check | **0.098s** |
 | SLA Class | 🥇 Gold |
 | Target | < 100ms |
@@ -112,8 +112,8 @@
 
 ### 5.3 Node-RED
 
-| Μέτρηση | Τιμή |
-|---------|------|
+| Metric | Value |
+|--------|-------|
 | UI Response | **0.092s** |
 | SLA Class | 🥇 Gold |
 | Target | < 100ms |
@@ -121,8 +121,8 @@
 
 ### 5.4 ThingsBoard
 
-| Μέτρηση | Τιμή |
-|---------|------|
+| Metric | Value |
+|--------|-------|
 | UI Response | ~0.200s |
 | Telemetry Ingestion | ~0.100s |
 | SLA Class | 🥈 Silver |
@@ -132,8 +132,8 @@
 
 ## 6. G.4 – SLA Classification per Service
 
-| Υπηρεσία | SLA Class | Latency (measured) | Target | Status |
-|----------|-----------|-------------------|--------|--------|
+| Service | SLA Class | Latency (measured) | Target | Status |
+|---------|-----------|-------------------|--------|--------|
 | RabbitMQ API | 🥇 Gold | **0.099s** | < 100ms | ✅ |
 | MinIO Health | 🥇 Gold | **0.098s** | < 100ms | ✅ |
 | Node-RED UI | 🥇 Gold | **0.092s** | < 100ms | ✅ |
@@ -147,8 +147,8 @@
 
 ## 7. Monitoring & Alerting
 
-### Prometheus Metrics (Φάση F)
-- **rabbitmq_connections** – Αριθμός ενεργών connections
+### Prometheus Metrics (Phase F)
+- **rabbitmq_connections** – Number of active connections
 - **rabbitmq_queue_messages** – Queue depth per queue
 - **container_cpu_usage_seconds_total** – CPU usage per pod
 - **container_memory_working_set_bytes** – Memory usage per pod
@@ -163,17 +163,17 @@
 
 ---
 
-## 8. Συμπεράσματα
+## 8. Conclusions
 
-### ✅ Επιτεύγματα
-1. **Serverless (Knative):** Scale-to-zero με cold start < 15s – κατάλληλο για Bronze SLA
+### ✅ Achievements
+1. **Serverless (Knative):** Scale-to-zero with cold start < 15s – suitable for Bronze SLA
 2. **Message Broker (RabbitMQ):** Sub-10ms latency – Gold SLA
 3. **Object Storage (MinIO):** Sub-20ms health check – Gold SLA
-4. **Monitoring:** Prometheus + Grafana με real-time alerts
-5. **GitOps (ArgoCD):** Αυτόματη deployment από Git
+4. **Monitoring:** Prometheus + Grafana with real-time alerts
+5. **GitOps (ArgoCD):** Automatic deployment from Git
 6. **CI/CD (Jenkins):** Automated build + push pipeline
 
-### 📊 Σύγκριση με Industry Standards
+### 📊 Comparison with Industry Standards
 
 | Metric | CloudField (measured) | AWS Lambda | Industry Avg |
 |--------|----------------------|------------|--------------|
@@ -184,31 +184,31 @@
 | Node-RED UI | **0.092s** | N/A | 50-200ms |
 | Availability | 99.5%* | 99.99% | 99.9% |
 
-*Εκτιμώμενη για single-node MicroK8s
+*Estimated for single-node MicroK8s
 
-### 🔧 Βελτιώσεις για Production
-1. **Multi-node cluster** για High Availability
-2. **Knative pre-warming** για Gold SLA cold start
-3. **RabbitMQ clustering** για fault tolerance
-4. **MinIO distributed mode** για scalability
-5. **Keycloak clustering** για auth HA
+### 🔧 Improvements for Production
+1. **Multi-node cluster** for High Availability
+2. **Knative pre-warming** for Gold SLA cold start
+3. **RabbitMQ clustering** for fault tolerance
+4. **MinIO distributed mode** for scalability
+5. **Keycloak clustering** for auth HA
 
 ---
 
-## 9. Εντολές Μέτρησης
+## 9. Measurement Commands
 
 ```bash
-# Τρέξε το SLA measurement script
+# Run the SLA measurement script
 cd /mnt/c/Users/billx/Desktop/CloudField
 bash sla-measure.sh | tee sla-results.txt
 
-# Δες τα Prometheus metrics
+# View Prometheus metrics
 curl -s http://localhost:9090/api/v1/query?query=rabbitmq_connections
 
-# Δες τα Grafana dashboards
+# View Grafana dashboards
 open http://grafana.172.31.76.79.nip.io/d/cloudfield-iot-v1
 ```
 
 ---
 
-*Τελευταία ενημέρωση: 2026-08-01 | CloudField IoT Platform v1.0*
+*Last updated: 2026-08-01 | CloudField IoT Platform v1.0*

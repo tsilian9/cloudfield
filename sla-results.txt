@@ -2,23 +2,23 @@
   CloudField SLA Measurements – 2026-08-01 17:23:30
 ════════════════════════════════════════════════════════
 
-⚠️  Ξεκινώ Kourier port-forward...
+Starting Kourier port-forward...
 Forwarding from 127.0.0.1:8081 -> 8080
 Forwarding from [::1]:8081 -> 8080
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-G.1 – Knative COLD START Latency
-      (scale-to-zero → πρώτο request)
+G.1 - Knative COLD START Latency
+      (scale-to-zero -> first request)
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-⏳ Ελέγχω αν το image-analyzer pod τρέχει...
-   Pod δεν τρέχει (scale-to-zero ήδη).
+Checking if image-analyzer pod is running...
+   Pod not running (already scaled to zero).
 
-🚀 Στέλνω cold start request...
+Sending cold start request...
 Handling connection for 8081
    Cold Start Latency: 6.746891s
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-G.2 – Knative WARM START Latency
-      (pod ήδη τρέχει – 5 μετρήσεις)
+G.2 - Knative WARM START Latency
+      (pod already running - 5 measurements)
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 Handling connection for 8081
    Warm Start #1: 1.992174s
@@ -36,7 +36,7 @@ Handling connection for 8081
    Warm Start Avg:  2.807s
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-G.3 – End-to-End Latency
+G.3 - End-to-End Latency
       (RabbitMQ Management API response time)
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
    RabbitMQ API Latency: 0.098860s
@@ -44,7 +44,7 @@ G.3 – End-to-End Latency
    Node-RED Latency:     0.091641s
 
 ════════════════════════════════════════════════════════
-  ΑΠΟΤΕΛΕΣΜΑΤΑ SLA
+  SLA RESULTS
 ════════════════════════════════════════════════════════
 
   Knative Cold Start:  6.746891s
@@ -56,5 +56,5 @@ G.3 – End-to-End Latency
   Node-RED:            0.091641s
 
 ════════════════════════════════════════════════════════
-  Αποθήκευσε τα αποτελέσματα: bash sla-measure.sh | tee sla-results.txt
+  Save results: bash sla-measure.sh | tee sla-results.txt
 ════════════════════════════════════════════════════════
