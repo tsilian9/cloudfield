@@ -1,0 +1,60 @@
+════════════════════════════════════════════════════════
+  CloudField SLA Measurements – 2026-08-01 17:23:30
+════════════════════════════════════════════════════════
+
+⚠️  Ξεκινώ Kourier port-forward...
+Forwarding from 127.0.0.1:8081 -> 8080
+Forwarding from [::1]:8081 -> 8080
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+G.1 – Knative COLD START Latency
+      (scale-to-zero → πρώτο request)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+⏳ Ελέγχω αν το image-analyzer pod τρέχει...
+   Pod δεν τρέχει (scale-to-zero ήδη).
+
+🚀 Στέλνω cold start request...
+Handling connection for 8081
+   Cold Start Latency: 6.746891s
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+G.2 – Knative WARM START Latency
+      (pod ήδη τρέχει – 5 μετρήσεις)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Handling connection for 8081
+   Warm Start #1: 1.992174s
+Handling connection for 8081
+   Warm Start #2: 4.023751s
+Handling connection for 8081
+   Warm Start #3: 2.000018s
+Handling connection for 8081
+   Warm Start #4: 4.025354s
+Handling connection for 8081
+   Warm Start #5: 1.998522s
+
+   Warm Start Min:  1.992174s
+   Warm Start Max:  4.025354s
+   Warm Start Avg:  2.807s
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+G.3 – End-to-End Latency
+      (RabbitMQ Management API response time)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   RabbitMQ API Latency: 0.098860s
+   MinIO Health Latency: 0.097961s
+   Node-RED Latency:     0.091641s
+
+════════════════════════════════════════════════════════
+  ΑΠΟΤΕΛΕΣΜΑΤΑ SLA
+════════════════════════════════════════════════════════
+
+  Knative Cold Start:  6.746891s
+  Knative Warm Avg:    2.807s
+  Knative Warm Min:    1.992174s
+  Knative Warm Max:    4.025354s
+  RabbitMQ API:        0.098860s
+  MinIO Health:        0.097961s
+  Node-RED:            0.091641s
+
+════════════════════════════════════════════════════════
+  Αποθήκευσε τα αποτελέσματα: bash sla-measure.sh | tee sla-results.txt
+════════════════════════════════════════════════════════
