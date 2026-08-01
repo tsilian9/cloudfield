@@ -1,0 +1,72 @@
+# ═══════════════════════════════════════════════════════════════
+# CloudField – Prometheus Alert Rules (F.6)
+# Alert: RabbitMQ queue depth > 10 → CRITICAL
+# ═══════════════════════════════════════════════════════════════
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: cloudfield-alerts
+  namespace: observability
+  labels:
+    release: kube-prom-stack
+    app: cloudfield
+spec:
+  groups:
+  - name: cloudfield.rabbitmq
+    interval: 30s
+    rules:
+
+    # ── Alert: Queue Depth > 10 ────────────────────────────────
+    - alert: RabbitMQQueueDepthHigh
+      expr: rabbitmq_queue_messages{queue="valve.commands"} > 10
+      for: 1m
+      labels:
+        severity: critical
+        team: cloudfield
+      annotations:
+        summary: "RabbitMQ queue depth υψηλό"
+        description: >
+          Η ουρά 'valve.commands' έχει {{ $value }} μηνύματα (> 10).
+          Πιθανή συμφόρηση ή αδρανής consumer.
+        runbook_url: "http://grafana.172.31.76.79.nip.io"
+
+    # ── Alert: Queue Depth Warning (> 5) ──────────────────────
+    - alert: RabbitMQQueueDepthWarning
+      expr: rabbitmq_queue_messages{queue="valve.commands"} > 5
+      for: 2m
+      labels:
+        severity: warning
+        team: cloudfield
+      annotations:
+        summary: "RabbitMQ queue depth αυξάνεται"
+        description: >
+          Η ουρά 'valve.commands' έχει {{ $value }} μηνύματα (> 5).
+          Παρακολούθησε την κατάσταση.
+
+    # ── Alert: RabbitMQ Down ───────────────────────────────────
+    - alert: RabbitMQDown
+      expr: up{job="rabbitmq-prometheus"} == 0
+      for: 1m
+      labels:
+        severity: critical
+        team: cloudfield
+      annotations:
+        summary: "RabbitMQ δεν είναι προσβάσιμο"
+        description: "Το RabbitMQ instance δεν απαντά στο Prometheus scrape."
+
+  - name: cloudfield.telemetry
+    interval: 60s
+    rules:
+
+    # ── Alert: Telemetry Rate = 0 (no messages) ───────────────
+    - alert: TelemetryRateZero
+      expr: rate(rabbitmq_queue_messages_published_total[5m]) == 0
+      for: 5m
+      labels:
+        severity: warning
+        team: cloudfield
+      annotations:
+        summary: "Μηδενικό telemetry rate"
+        description: >
+          Δεν υπάρχουν νέα μηνύματα στο RabbitMQ τα τελευταία 5 λεπτά.
+          Έλεγξε το Node-RED pipeline.

@@ -1,0 +1,61 @@
+# ═══════════════════════════════════════════════════════════════
+# CloudField Monitoring – Grafana Ingress + RabbitMQ ServiceMonitor
+# ═══════════════════════════════════════════════════════════════
+
+# ── F.2: Grafana Ingress ───────────────────────────────────────
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: grafana-ingress
+  namespace: observability
+  annotations:
+    nginx.ingress.kubernetes.io/ssl-redirect: "false"
+spec:
+  ingressClassName: nginx
+  rules:
+  - host: grafana.172.31.76.79.nip.io
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: kube-prom-stack-grafana
+            port:
+              number: 80
+---
+# ── F.3: RabbitMQ ServiceMonitor ──────────────────────────────
+# Ενεργοποιεί το Prometheus να scrape τα RabbitMQ metrics
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: rabbitmq-monitor
+  namespace: default
+  labels:
+    release: kube-prom-stack
+spec:
+  selector:
+    matchLabels:
+      app: rabbitmq
+  endpoints:
+  - port: prometheus
+    interval: 15s
+    path: /metrics
+---
+# ── F.3: RabbitMQ Service (Prometheus port) ───────────────────
+# Προσθέτει port 15692 (RabbitMQ Prometheus plugin)
+apiVersion: v1
+kind: Service
+metadata:
+  name: rabbitmq-prometheus
+  namespace: default
+  labels:
+    app: rabbitmq
+spec:
+  selector:
+    app: rabbitmq
+  ports:
+  - name: prometheus
+    port: 15692
+    targetPort: 15692
+    protocol: TCP
