@@ -20,7 +20,7 @@ spec:
     requests:
       storage: 5Gi
 ---
-# ── ServiceAccount + RBAC (για να μπορεί να τρέχει kubectl) ───
+# ── ServiceAccount + RBAC (to be able to run kubectl) ───
 apiVersion: v1
 kind: ServiceAccount
 metadata:

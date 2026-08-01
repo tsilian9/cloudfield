@@ -46,7 +46,7 @@ spec:
             configMapKeyRef:
               name: farm-settings
               key: KEYCLOAK_PORT
-        # OAuth2 ρυθμίσεις για ThingsBoard
+        # OAuth2 settings for ThingsBoard
         #- name: TB_OAUTH2_ENABLED
         #  value: "true"
         #- name: TB_OAUTH2_CLIENT_ID

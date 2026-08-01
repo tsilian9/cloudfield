@@ -1,8 +1,8 @@
 ---
 # ═══════════════════════════════════════════════════════════════
 # CloudField Ansible Playbook
-# Εκτελεί: kubectl apply, MinIO lifecycle, ConfigMap update
-# Χρήση: ansible-playbook -i inventory.ini playbook.yml
+# Executes: kubectl apply, MinIO lifecycle, ConfigMap update
+# Usage: ansible-playbook -i inventory.ini playbook.yml
 # ═══════════════════════════════════════════════════════════════
 - name: CloudField – Deploy & Configure
   hosts: cloudfield
@@ -16,7 +16,7 @@
 
   tasks:
 
-    # ── D.4: kubectl apply για όλα τα YAMLs ───────────────────
+    # ── D.4: kubectl apply for all YAMLs ──────────────────────
     - name: "D.4 | Apply RabbitMQ"
       command: kubectl apply -f "{{ project_dir }}/rabbitmq.yaml"
       register: rabbitmq_result
@@ -55,7 +55,7 @@
           - "ThingsBoard: {{ tb_result.stdout_lines }}"
           - "Node-RED: {{ nodered_result.stdout_lines }}"
 
-    # ── D.5: MinIO lifecycle policy μέσω mc + port-forward ───
+    # ── D.5: MinIO lifecycle policy via mc + port-forward ─────
     - name: "D.5 | Check if mc (MinIO Client) is installed"
       command: which mc
       register: mc_check
@@ -71,29 +71,29 @@
 
     - name: "D.5 | Apply MinIO lifecycle via port-forward"
       shell: |
-        # Ξεκίνα port-forward στο background
+        # Start port-forward in background
         kubectl port-forward svc/minio 9000:9000 &
         PF_PID=$!
         sleep 3
 
-        # Ρύθμισε mc alias με localhost:9000
+        # Configure mc alias with localhost:9000
         mc alias set cloudfield http://localhost:9000 {{ minio_user }} {{ minio_pass }} --api S3v4
 
-        # Δημιούργησε buckets αν δεν υπάρχουν
+        # Create buckets if they don't exist
         mc mb --ignore-existing cloudfield/farm-data
         mc mb --ignore-existing cloudfield/farm-images
 
-        # Εφάρμοσε lifecycle policies
+        # Apply lifecycle policies
         mc ilm rule add --expire-days 30 cloudfield/farm-data
         mc ilm rule add --expire-days 7 cloudfield/farm-images
 
-        # Εμφάνισε τα rules
+        # Show the rules
         echo "=== farm-data lifecycle ==="
         mc ilm rule ls cloudfield/farm-data
         echo "=== farm-images lifecycle ==="
         mc ilm rule ls cloudfield/farm-images
 
-        # Σκότωσε το port-forward
+        # Kill the port-forward
         kill $PF_PID 2>/dev/null || true
       register: lifecycle_result
       changed_when: true
@@ -102,7 +102,7 @@
       debug:
         msg: "{{ lifecycle_result.stdout_lines }}"
 
-    # ── D.6: Ενημέρωση ConfigMap nodered-flow ─────────────────
+    # ── D.6: Update ConfigMap nodered-flow ────────────────────
     - name: "D.6 | Generate nodered-flow ConfigMap from flows.json"
       command: >
         kubectl create configmap nodered-flow
@@ -129,7 +129,7 @@
         msg: "ConfigMap nodered-flow: {{ configmap_result.stdout }}"
 
     # ── Summary ────────────────────────────────────────────────
-    - name: "✅ CloudField deployment complete!"
+    - name: "CloudField deployment complete!"
       debug:
         msg:
           - "Node-RED:    http://nodered.172.31.76.79.nip.io"

@@ -1,15 +1,15 @@
 # ═══════════════════════════════════════════════════════════════
-# Custom Node-RED Image για CloudField
-# Περιέχει: flows.json + required npm packages baked-in
+# Custom Node-RED Image for CloudField
+# Contains: flows.json + required npm packages baked-in
 # Docker Hub: tsilian9/cloudfield-nodered
 # ═══════════════════════════════════════════════════════════════
 FROM nodered/node-red:latest
 
-# Αντιγραφή των flows στο image
+# Copy flows into the image
 WORKDIR /data
 COPY flows.json flows.json
 
-# Εγκατάσταση των απαραίτητων Node-RED palettes
+# Install required Node-RED palettes
 RUN npm install \
     @meowwolf/node-red-contrib-amqp@2.4.2 \
     node-red-contrib-s3@0.1.2 \

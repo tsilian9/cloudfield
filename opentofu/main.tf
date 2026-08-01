@@ -1,5 +1,5 @@
 # ═══════════════════════════════════════════════════════════════
-# A.3 – Kubernetes Secret: farm-secrets
+#  Kubernetes Secret: farm-secrets
 # ═══════════════════════════════════════════════════════════════
 resource "kubernetes_secret" "farm_secrets" {
   metadata {
@@ -23,7 +23,7 @@ resource "kubernetes_secret" "farm_secrets" {
 }
 
 # ═══════════════════════════════════════════════════════════════
-# A.4 – Kubernetes ConfigMap: farm-settings
+#  Kubernetes ConfigMap: farm-settings
 # ═══════════════════════════════════════════════════════════════
 resource "kubernetes_config_map" "farm_settings" {
   metadata {
@@ -40,7 +40,7 @@ resource "kubernetes_config_map" "farm_settings" {
 }
 
 # ═══════════════════════════════════════════════════════════════
-# A.5 – MinIO Buckets: farm-images + farm-data
+# MinIO Buckets: farm-images + farm-data
 # ═══════════════════════════════════════════════════════════════
 resource "minio_s3_bucket" "farm_images" {
   bucket = "farm-images"
@@ -53,13 +53,13 @@ resource "minio_s3_bucket" "farm_data" {
 }
 
 # ═══════════════════════════════════════════════════════════════
-# A.6 – MinIO Lifecycle Policy: 90 ημέρες
-# Σημείωση: Το lifecycle ρυθμίζεται μέσω mc CLI (standalone mode)
-# Εντολή: mc ilm add --expiry-days 90 local/farm-images
-# Εντολή: mc ilm add --expiry-days 90 local/farm-data
+# MinIO Lifecycle Policy: 90 days
+# Note: Lifecycle is configured via mc CLI (standalone mode)
+# Command: mc ilm add --expiry-days 90 local/farm-images
+# Command: mc ilm add --expiry-days 90 local/farm-data
 # ═══════════════════════════════════════════════════════════════
-# (Το minio_ilm_policy resource δεν υποστηρίζεται σε standalone MinIO)
-# Χρησιμοποιούμε null_resource για να εκτελέσουμε mc CLI
+# (The minio_ilm_policy resource is not supported in standalone MinIO)
+# We use null_resource to execute mc CLI
 resource "null_resource" "farm_images_lifecycle" {
   depends_on = [minio_s3_bucket.farm_images]
 
@@ -77,7 +77,7 @@ resource "null_resource" "farm_data_lifecycle" {
 }
 
 # ═══════════════════════════════════════════════════════════════
-# A.7 – Keycloak: Realm cloudfield
+# Keycloak: Realm cloudfield
 # ═══════════════════════════════════════════════════════════════
 resource "keycloak_realm" "cloudfield" {
   realm   = "cloudfield"

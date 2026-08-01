@@ -49,7 +49,7 @@ pipeline {
             }
         }
 
-        // ── Stage 4: Update nodered.yaml με νέο image tag ──────
+        // ── Stage 4: Update nodered.yaml with new image tag ────
         stage('Update K8s Manifest') {
             steps {
                 withCredentials([usernamePassword(
@@ -58,7 +58,7 @@ pipeline {
                     passwordVariable: 'GIT_PASS'
                 )]) {
                     sh """
-                        # Ενημέρωσε το image tag στο nodered.yaml
+                        # Update the image tag in nodered.yaml
                         sed -i 's|image: ${IMAGE_FULL}:.*|image: ${IMAGE_FULL}:${BUILD_NUMBER}|g' nodered.yaml
 
                         # Git commit & push
@@ -76,13 +76,13 @@ pipeline {
     // ── Post Actions ───────────────────────────────────────────
     post {
         success {
-            echo "✅ Build #${BUILD_NUMBER} επιτυχής! ArgoCD θα κάνει auto-deploy σε λίγα λεπτά."
+            echo "Build #${BUILD_NUMBER} successful! ArgoCD will auto-deploy in a few minutes."
         }
         failure {
-            echo "❌ Build #${BUILD_NUMBER} απέτυχε! Έλεγξε τα logs."
+            echo "Build #${BUILD_NUMBER} failed! Check the logs."
         }
         always {
-            // Καθαρισμός local Docker images για εξοικονόμηση χώρου
+            // Clean up local Docker images to save disk space
             sh "docker rmi ${IMAGE_FULL}:${BUILD_NUMBER} || true"
         }
     }

@@ -24,10 +24,10 @@ spec:
         severity: critical
         team: cloudfield
       annotations:
-        summary: "RabbitMQ queue depth υψηλό"
+        summary: "RabbitMQ queue depth is high"
         description: >
-          Η ουρά 'valve.commands' έχει {{ $value }} μηνύματα (> 10).
-          Πιθανή συμφόρηση ή αδρανής consumer.
+          The 'valve.commands' queue has {{ $value }} messages (> 10).
+          Possible congestion or inactive consumer.
         runbook_url: "http://grafana.172.31.76.79.nip.io"
 
     # ── Alert: Queue Depth Warning (> 5) ──────────────────────
@@ -38,10 +38,10 @@ spec:
         severity: warning
         team: cloudfield
       annotations:
-        summary: "RabbitMQ queue depth αυξάνεται"
+        summary: "RabbitMQ queue depth is increasing"
         description: >
-          Η ουρά 'valve.commands' έχει {{ $value }} μηνύματα (> 5).
-          Παρακολούθησε την κατάσταση.
+          The 'valve.commands' queue has {{ $value }} messages (> 5).
+          Monitor the situation.
 
     # ── Alert: RabbitMQ Down ───────────────────────────────────
     - alert: RabbitMQDown
@@ -51,8 +51,8 @@ spec:
         severity: critical
         team: cloudfield
       annotations:
-        summary: "RabbitMQ δεν είναι προσβάσιμο"
-        description: "Το RabbitMQ instance δεν απαντά στο Prometheus scrape."
+        summary: "RabbitMQ is not accessible"
+        description: "The RabbitMQ instance is not responding to Prometheus scrape."
 
   - name: cloudfield.telemetry
     interval: 60s
@@ -66,7 +66,7 @@ spec:
         severity: warning
         team: cloudfield
       annotations:
-        summary: "Μηδενικό telemetry rate"
+        summary: "Zero telemetry rate"
         description: >
-          Δεν υπάρχουν νέα μηνύματα στο RabbitMQ τα τελευταία 5 λεπτά.
-          Έλεγξε το Node-RED pipeline.
+          No new messages in RabbitMQ for the last 5 minutes.
+          Check the Node-RED pipeline.

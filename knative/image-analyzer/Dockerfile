@@ -6,14 +6,14 @@ FROM python:3.11-slim
 
 WORKDIR /app
 
-# Εγκατάσταση dependencies
+# Install dependencies
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Αντιγραφή κώδικα
+# Copy source code
 COPY app.py .
 
-# Knative χρησιμοποιεί PORT env variable
+# Knative uses PORT env variable
 ENV PORT=8080
 
 EXPOSE 8080

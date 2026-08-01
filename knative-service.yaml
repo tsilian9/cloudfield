@@ -14,7 +14,7 @@ spec:
   template:
     metadata:
       annotations:
-        # Scale to zero μετά από 60 δευτερόλεπτα αδράνειας
+        # Scale to zero after 60 seconds of inactivity
         autoscaling.knative.dev/scale-to-zero-pod-retention-period: "60s"
         # Minimum 0 replicas (true serverless)
         autoscaling.knative.dev/minScale: "0"

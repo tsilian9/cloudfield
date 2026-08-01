@@ -15,7 +15,7 @@ terraform {
   }
 }
 
-# Kubernetes provider – διαβάζει αυτόματα το ~/.kube/config
+# Kubernetes provider – reads automatically from ~/.kube/config
 provider "kubernetes" {
   config_path    = "~/.kube/config"
   config_context = "microk8s"

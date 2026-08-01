@@ -26,7 +26,7 @@ spec:
 ---
 # ═══════════════════════════════════════════════════════════════
 # ArgoCD Application – CloudField
-# Παρακολουθεί το GitHub repo και κάνει auto-sync
+# Monitors the GitHub repo and performs auto-sync
 # ═══════════════════════════════════════════════════════════════
 apiVersion: argoproj.io/v1alpha1
 kind: Application
