@@ -8,6 +8,14 @@
         "env": []
     },
     {
+        "id": "tab-idempotency",
+        "type": "tab",
+        "label": "Valve Commands (Idempotency)",
+        "disabled": false,
+        "info": "Idempotency pattern: αποτρέπει διπλές εντολές στη valve.commands queue",
+        "env": []
+    },
+    {
         "id": "d1d189f2f14d2a34",
         "type": "amqp-broker",
         "name": "",
@@ -79,6 +87,112 @@
         "outputs": 0,
         "x": 370,
         "y": 240,
+        "wires": []
+    },
+    {
+        "id": "inject-valve-open",
+        "type": "inject",
+        "z": "tab-idempotency",
+        "name": "OPEN valve",
+        "props": [
+            {
+                "p": "payload"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "{\"command\":\"OPEN\",\"valve\":\"valve-01\",\"timestamp\":\"\"}",
+        "payloadType": "json",
+        "x": 150,
+        "y": 100,
+        "wires": [
+            [
+                "fn-idempotency-check"
+            ]
+        ]
+    },
+    {
+        "id": "inject-valve-close",
+        "type": "inject",
+        "z": "tab-idempotency",
+        "name": "CLOSE valve",
+        "props": [
+            {
+                "p": "payload"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "{\"command\":\"CLOSE\",\"valve\":\"valve-01\",\"timestamp\":\"\"}",
+        "payloadType": "json",
+        "x": 150,
+        "y": 180,
+        "wires": [
+            [
+                "fn-idempotency-check"
+            ]
+        ]
+    },
+    {
+        "id": "fn-idempotency-check",
+        "type": "function",
+        "z": "tab-idempotency",
+        "name": "Function 4 – Idempotency Check",
+        "func": "// ═══════════════════════════════════════════════════\n// Idempotency Pattern – Φάση H\n// Αποτρέπει διπλές εντολές στη valve.commands queue\n// Χρησιμοποιεί flow context για αποθήκευση τελευταίας εντολής\n// ═══════════════════════════════════════════════════\n\nvar payload = msg.payload;\n\n// Κανονικοποίησε: αγνόησε το timestamp για σύγκριση\nvar cmdKey = payload.command + ':' + payload.valve;\n\n// Διάβασε την τελευταία εντολή από το flow context\nvar lastCmdKey = flow.get('lastValveCommand') || null;\nvar lastCmdTime = flow.get('lastValveCommandTime') || 0;\nvar now = Date.now();\n\n// Idempotency window: 5 δευτερόλεπτα\n// Αν η ίδια εντολή έχει σταλεί στα τελευταία 5s → skip\nvar IDEMPOTENCY_WINDOW_MS = 5000;\n\nif (lastCmdKey === cmdKey && (now - lastCmdTime) < IDEMPOTENCY_WINDOW_MS) {\n    // DUPLICATE εντολή – αγνόησε\n    node.warn('IDEMPOTENT SKIP: Duplicate command \"' + cmdKey + '\" within ' + IDEMPOTENCY_WINDOW_MS + 'ms window');\n    node.status({fill:'yellow', shape:'ring', text:'DUPLICATE: ' + cmdKey});\n    return null;  // Σταμάτα το flow – μην στείλεις στο RabbitMQ\n}\n\n// Νέα εντολή – αποθήκευσε στο context και προχώρα\nflow.set('lastValveCommand', cmdKey);\nflow.set('lastValveCommandTime', now);\n\n// Πρόσθεσε timestamp στο payload\nmsg.payload.timestamp = new Date().toISOString();\nmsg.payload.idempotencyKey = cmdKey + ':' + now;\n\nnode.status({fill:'green', shape:'dot', text:'SENT: ' + cmdKey});\nnode.log('IDEMPOTENT PASS: New command \"' + cmdKey + '\" – forwarding to RabbitMQ');\n\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 420,
+        "y": 140,
+        "wires": [
+            [
+                "amqp-valve-commands",
+                "debug-idempotency"
+            ]
+        ]
+    },
+    {
+        "id": "amqp-valve-commands",
+        "type": "amqp-out",
+        "z": "tab-idempotency",
+        "name": "valve.commands queue",
+        "broker": "d1d189f2f14d2a34",
+        "exchangeName": "amq.default",
+        "exchangeType": "direct",
+        "exchangeRoutingKey": "valve.commands",
+        "exchangeRoutingKeyType": "str",
+        "exchangeDurable": true,
+        "amqpProperties": "{ \"headers\": {} }",
+        "rpcTimeoutMilliseconds": 3000,
+        "outputs": 0,
+        "x": 680,
+        "y": 100,
+        "wires": []
+    },
+    {
+        "id": "debug-idempotency",
+        "type": "debug",
+        "z": "tab-idempotency",
+        "name": "debug – sent to RabbitMQ",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "payload",
+        "targetType": "msg",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 700,
+        "y": 180,
         "wires": []
     }
 ]
