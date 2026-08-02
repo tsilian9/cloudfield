@@ -73,10 +73,10 @@ graph TB
 | Service | URL | Credentials |
 |---------|-----|-------------|
 | Node-RED | http://nodered.172.31.76.79.nip.io | - |
-| ThingsBoard | http://thingsboard.172.31.76.79.nip.io | sysadmin@thingsboard.org / sysadmin |
-| RabbitMQ | http://rabbitmq.172.31.76.79.nip.io | guest / guest |
-| MinIO | http://minio.172.31.76.79.nip.io | minioadmin / minioadmin |
-| Keycloak | http://keycloak.172.31.76.79.nip.io | admin / admin |
+| ThingsBoard | http://thingsboard.172.31.76.79.nip.io | tenant@thingsboard.org / tenant |
+| RabbitMQ | http://rabbitmq.172.31.76.79.nip.io | admin / admin123 |
+| MinIO | http://minio.172.31.76.79.nip.io | admin / admin123 |
+| Keycloak | http://keycloak.172.31.76.79.nip.io | admin123 / admin123 |
 | Grafana | http://grafana.172.31.76.79.nip.io | admin / prom-operator |
 | ArgoCD | http://argocd.172.31.76.79.nip.io | admin / (kubectl get secret) |
 | Jenkins | http://jenkins.172.31.76.79.nip.io | admin / (kubectl get secret) |
